@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.3.1/css/ol.css" type="text/css">
+    <style>
+      .map {
+        height: 500px;
+        width: 100%;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.3.1/build/ol.js"></script>
+    <title>OpenLayers example</title>
+  </head>
+  <body>
+    <h2>My Map</h2>
+    <span id="status"></span>
+    <div id="map" class="map"></div>
+    <script type="text/javascript">
+      var Markers = 
+        [
+          *PLACEHOLDER*
+        ];
+
+        var myMap = new ol.Map({
+            target: 'map',
+            layers: [
+                new ol.layer.Tile({
+                    source: new ol.source.OSM()
+                })
+            ],
+            view: new ol.View({
+                center: ol.proj.fromLonLat([41.1878, 28.00158]),
+                zoom: 6
+            })
+        });
+
+        var selected = null;
+        myMap.on('pointermove', function(e) {
+          if (selected !== null) {
+            selected = null;
+          }
+          myMap.forEachFeatureAtPixel(e.pixel, function(f) {
+            selected = f;
+            return true;
+          });
+
+          if (selected) {
+            document.getElementById('status').innerHTML = '&nbsp;Hovering: ' + selected.get('name');
+          } else {
+            document.getElementById('status').innerHTML = '&nbsp;';
+          }
+        });
+
+        var features = [];
+
+        for (var i = 0; i < Markers.length; i++) {
+            var item = Markers[i];
+
+            var iconFeature = new ol.Feature({
+                geometry: new ol.geom.Point(ol.proj.transform([item.lng, item.lat], 'EPSG:4326', 'EPSG:3857')),
+                name: item.Date + " " + item.Time + ", Magnitude : " + item.Magnitude
+            });
+
+            var iconStyle = new ol.style.Style({
+                image: new ol.style.Icon(({
+                    anchor: [0.5, 1],
+                    scale: 0.25 + (item.Magnitude-5)*0.5,
+                    src: "http://cdn.mapmarker.io/api/v1/pin?text=P&size=50&hoffset=1"
+                }))
+            });
+
+            iconFeature.setStyle(iconStyle);
+            features.push(iconFeature);
+        }
+
+        var vectorSource = new ol.source.Vector({
+            features: features
+        });
+
+        var vectorLayer = new ol.layer.Vector({
+            source: vectorSource
+        });
+        myMap.addLayer(vectorLayer);
+    </script>
+  </body>
+</html>
